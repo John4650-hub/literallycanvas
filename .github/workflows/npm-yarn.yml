@@ -26,4 +26,39 @@ jobs:
       run: |
         npm install
         yarn build
-        ls -a lib/js/
+        zip -r production-build.zip lib/js/
+  upload-build:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+     - uses: actions/upload-artifact@v3
+       with:
+         name: production-build
+         path: ./production.zip
+  download-build:
+    runs-on: ubuntu-latest
+    needs: upload-build
+    steps:
+     - uses: actions/download-artifact@v3
+       with:
+         name: production-build
+     - name: create release
+       id: create_release
+       uses: actions/upload-release-asset@v1.0.1
+       env:
+         GITHUB_TOKEN: ${{ secrets.TK }}
+       with:
+         tag_name: ${{ github.run_number }}
+         release_name: "literally_canvas"
+      
+     - name: upload_release
+       id: upload_release
+       uses: actions/upload-release-asset@v1.0.1
+       env:
+         GITHUB_TOKEN: ${{ secrets.TK }}
+         assetName: production-build
+       with:
+         upload_url: ${{ steps.create_release.out    puts.upload_url }}
+         asset_path: ${{ env.assetName }}.zip
+         asset_name: ${{ env.assetName }}.zip
+         asset_content_type: application/zip
